@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Village 3D - Level 4</title>
+ 
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;background:#c8edff;
+font-family:Arial,sans-serif;text-align:center;
+}
+header{
+background:#398e4c;color:white;padding:10px;
+}
+header h2{margin:4px}
+#game{
+width:100%;height:68vh;min-height:420px;
+position:relative;overflow:hidden;
+}
+canvas{display:block}
+.hud{
+position:absolute;top:10px;left:0;right:0;
+display:flex;justify-content:center;gap:7px;
+flex-wrap:wrap;pointer-events:none;
+}
+.stat{
+background:#ffffffeb;padding:9px 12px;
+border-radius:20px;font-weight:bold;
+box-shadow:0 2px 5px #777;
+font-size:13px;
+}
+#message{
+padding:10px;color:#246b36;font-weight:bold;
+min-height:34px;
+}
+button{
+border:0;border-radius:13px;padding:12px 16px;
+margin:4px;background:#ffbd4c;
+font-size:15px;font-weight:bold;
+box-shadow:0 4px #d28b27;
+cursor:pointer;
+}
+button:active{transform:translateY(3px);box-shadow:none}
+#action{
+background:#36a957;color:white;
+box-shadow:0 4px #237c3d;
+font-size:17px;
+}
+.controls{
+display:flex;justify-content:center;
+align-items:center;gap:25px;flex-wrap:wrap;
+padding:5px 10px 15px;
+}
+.dpad{
+display:grid;grid-template-columns:48px 48px 48px;
+gap:3px;
+}
+.dpad button{padding:12px 5px;margin:0}
+.small{font-size:12px;color:#555}
+</style>
+</head>
+ 
+<body>
+ 
+<header>
+<h2>🌻 Happy Village 3D</h2>
+<div>Level 4 - Animal Farm 🐄</div>
+</header>
+ 
+<div id="game">
+ 
+<div class="hud">
+  <div class="stat">🪙 <span id="coins">100</span></div>
+  <div class="stat">❤️ <span id="happy">0</span></div>
+  <div class="stat">🐄 <span id="cowDone">0</span>/1</div>
+  <div class="stat">🥚 <span id="eggs">0</span>/1</div>
+  <div class="stat">🐑 <span id="sheepDone">0</span>/1</div>
+</div>
+ 
+</div>
+ 
+<div id="message">
+Welcome to your 3D Animal Farm! Move near an animal.
+</div>
+ 
+<div class="controls">
+ 
+<div class="dpad">
+  <div></div>
+  <button data-move="up">⬆️</button>
+  <div></div>
+  <button data-move="left">⬅️</button>
+  <button data-move="down">⬇️</button>
+  <button data-move="right">➡️</button>
+</div>
+ 
+<div>
+  <button id="action">🤝 INTERACT</button>
+  <p class="small">WASD / Arrow keys / Touch controls</p>
+</div>
+ 
+</div>
+ 
+<script type="importmap">
+{
+"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+}
+}
+</script>
+ 
+<script type="module">
+import * as THREE from "three";
+ 
+const game = document.getElementById("game");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9cddff);
+scene.fog = new THREE.Fog(0x9cddff,25,65);
+ 
+const camera = new THREE.PerspectiveCamera(
+55,game.clientWidth/game.clientHeight,0.1,100
+);
+camera.position.set(0,8,12);
+ 
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(game.clientWidth,game.clientHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+game.appendChild(renderer.domElement);
+ 
+// LIGHTS
+scene.add(new THREE.HemisphereLight(0xffffff,0x65934a,2));
+ 
+const sunlight = new THREE.DirectionalLight(0xffffff,3);
+sunlight.position.set(-8,15,8);
+sunlight.castShadow=true;
+sunlight.shadow.mapSize.set(1024,1024);
+scene.add(sunlight);
+ 
+// MATERIALS
+function mat(color,roughness=0.9){
+return new THREE.MeshStandardMaterial({color,roughness});
+}
+ 
+const grass=mat(0x6ebc55);
+const darkGrass=mat(0x499344);
+const brown=mat(0x86502c);
+const wood=mat(0xa66a3e);
+const white=mat(0xf3eee0);
+const black=mat(0x292323);
+const pink=mat(0xef6c9b);
+const skin=mat(0xf1bd91);
+const yellow=mat(0xffd34f);
+ 
+// OBJECT HELPER
+function box(parent,x,y,z,w,h,d,material){
+const m=new THREE.Mesh(
+  new THREE.BoxGeometry(w,h,d),material
+);
+m.position.set(x,y,z);
+m.castShadow=true;
+m.receiveShadow=true;
+parent.add(m);
+return m;
+}
+ 
+function sphere(parent,x,y,z,sx,sy,sz,material){
+const m=new THREE.Mesh(
+  new THREE.SphereGeometry(1,16,12),material
+);
+m.position.set(x,y,z);
+m.scale.set(sx,sy,sz);
+m.castShadow=true;
+parent.add(m);
+return m;
+}
+ 
+function cylinder(parent,x,y,z,r1,r2,h,material){
+const m=new THREE.Mesh(
+  new THREE.CylinderGeometry(r1,r2,h,12),material
+);
+m.position.set(x,y,z);
+m.castShadow=true;
+parent.add(m);
+return m;
+}
+ 
+// GROUND
+box(scene,0,-0.3,0,45,0.5,45,grass);
+ 
+// FARM PATCH
+box(scene,-7,-0.02,0,9,0.05,8,darkGrass);
+ 
+// BARN
+const barn=new THREE.Group();
+barn.position.set(-9,0,-7);
+scene.add(barn);
+ 
+box(barn,0,1.5,0,5,3,4,mat(0xc84e42));
+const roof=new THREE.Mesh(
+new THREE.ConeGeometry(3.8,2,4),
+mat(0x743d35)
+);
+roof.position.set(0,3.9,0);
+roof.rotation.y=Math.PI/4;
+roof.scale.set(1,1,0.8);
+roof.castShadow=true;
+barn.add(roof);
+box(barn,0,1,2.05,1.7,2,0.12,wood);
+ 
+// HOUSE
+const house=new THREE.Group();
+house.position.set(9,0,-9);
+scene.add(house);
+box(house,0,1.4,0,4,2.8,3.5,mat(0xffd58c));
+ 
+const houseRoof=new THREE.Mesh(
+new THREE.ConeGeometry(3.2,1.8,4),
+mat(0xb64f39)
+);
+houseRoof.position.y=3.6;
+houseRoof.rotation.y=Math.PI/4;
+house.add(houseRoof);
+ 
+box(house,0,0.9,1.8,0.9,1.8,0.15,wood);
+ 
+// TREES
+function makeTree(x,z){
+const g=new THREE.Group();
+g.position.set(x,0,z);
+scene.add(g);
+cylinder(g,0,0.8,0,0.18,0.25,1.6,brown);
+sphere(g,0,2,0,1,1.1,1,darkGrass);
+sphere(g,-0.5,2.3,0.2,0.7,0.7,0.7,grass);
+sphere(g,0.5,2.4,-0.2,0.7,0.7,0.7,grass);
+}
+for(let i=0;i<14;i++){
+makeTree(
+  Math.sin(i*2.4)*17,
+  Math.cos(i*2.4)*17
+);
+}
+ 
+// FLOWERS
+for(let i=0;i<35;i++){
+const x=Math.random()*24-12;
+const z=Math.random()*20-10;
+const f=new THREE.Group();
+f.position.set(x,0,z);
+scene.add(f);
+cylinder(f,0,0.18,0,0.035,0.035,0.35,darkGrass);
+sphere(f,0,0.4,0,0.12,0.12,0.12,
+  i%2?pink:yellow);
+}
+ 
+// FENCES
+for(let i=0;i<8;i++){
+box(scene,-7+i*1.4,0.4,4,0.12,0.8,0.12,wood);
+}
+box(scene,-2.1,0.7,4,10,0.12,0.12,wood);
+ 
+// ANIMAL CREATOR
+function makeCow(x,z){
+const g=new THREE.Group();
+g.position.set(x,0,z);
+scene.add(g);
+ 
+sphere(g,0,1.05,0,1,0.65,0.55,white);
+sphere(g,0.75,1.25,0,0.42,0.4,0.38,white);
+sphere(g,0.98,1.13,0.32,0.28,0.18,0.12,skin);
+ 
+// spots
+sphere(g,-0.3,1.5,0.35,0.3,0.25,0.08,black);
+sphere(g,0.25,1.3,-0.5,0.25,0.22,0.08,black);
+ 
+// ears
+sphere(g,0.55,1.55,0.3,0.2,0.09,0.16,skin);
+sphere(g,0.95,1.55,-0.2,0.2,0.09,0.16,skin);
+ 
+// horns
+cylinder(g,0.62,1.72,0,0.04,0.11,0.35,yellow);
+cylinder(g,0.95,1.72,0,0.04,0.11,0.35,yellow);
+ 
+// eyes
+sphere(g,0.98,1.4,0.29,0.045,0.06,0.035,black);
+ 
+for(let a of [-0.65,0.65]){
+  for(let b of [-0.32,0.32]){
+   cylinder(g,a,0.35,b,0.09,0.1,0.65,white);
+  }
+}
+return g;
+}
+ 
+function makeSheep(x,z){
+const g=new THREE.Group();
+g.position.set(x,0,z);
+scene.add(g);
+ 
+sphere(g,0,1,0,0.9,0.75,0.65,white);
+sphere(g,0.65,1.3,0,0.42,0.4,0.4,white);
+sphere(g,0.93,1.18,0.24,0.22,0.18,0.15,skin);
+sphere(g,0.88,1.38,0.31,0.05,0.07,0.04,black);
+ 
+for(let a of [-0.55,0.55]){
+  for(let b of [-0.35,0.35]){
+   cylinder(g,a,0.35,b,0.07,0.08,0.6,white);
+  }
+}
+for(let i=0;i<5;i++){
+  sphere(g,Math.sin(i)*0.4,1.55,Math.cos(i)*0.3,
+   0.3,0.3,0.3,white);
+}
+return g;
+}
+ 
+function makeChicken(x,z){
+const g=new THREE.Group();
+g.position.set(x,0,z);
+scene.add(g);
+ 
+sphere(g,0,0.55,0,0.45,0.48,0.4,white);
+sphere(g,0.2,0.92,0,0.3,0.3,0.3,white);
+sphere(g,0.45,0.85,0,0.15,0.1,0.1,yellow);
+sphere(g,0.15,1.19,0,0.1,0.15,0.1,pink);
+sphere(g,0.29,0.98,0.25,0.045,0.05,0.04,black);
+ 
+for(let x of [-0.15,0.2]){
+  cylinder(g,x,0.15,0,0.04,0.05,0.3,yellow);
+}
+return g;
+}
+ 
+const cow=makeCow(-7,0);
+const sheep=makeSheep(3,-2);
+const chicken=makeChicken(7,1);
+ 
+// GIRL CHARACTER - FULL 3D BODY
+const girl=new THREE.Group();
+scene.add(girl);
+girl.position.set(0,0,7);
+ 
+const girlBody=new THREE.Group();
+girl.add(girlBody);
+ 
+// BODY
+cylinder(girlBody,0,1.65,0,0.32,0.38,0.85,pink);
+sphere(girlBody,0,2.45,0,0.43,0.48,0.4,skin);
+ 
+// HAIR
+sphere(girlBody,0,2.65,-0.08,0.45,0.38,0.43,mat(0x392018));
+sphere(girlBody,-0.34,2.4,-0.08,0.17,0.4,0.19,mat(0x392018));
+sphere(girlBody,0.34,2.4,-0.08,0.17,0.4,0.19,mat(0x392018));
+ 
+// EYES
+sphere(girlBody,-0.16,2.48,0.36,0.045,0.07,0.035,black);
+sphere(girlBody,0.16,2.48,0.36,0.045,0.07,0.035,black);
+ 
+// SMILE
+sphere(girlBody,0,2.28,0.38,0.09,0.025,0.025,pink);
+ 
+// SKIRT
+const skirt=new THREE.Mesh(
+new THREE.CylinderGeometry(0.32,0.58,0.65,20),
+yellow
+);
+skirt.position.y=1.05;
+skirt.castShadow=true;
+girlBody.add(skirt);
+ 
+// ARMS AND LEGS
+const limbs=[];
+ 
+function makeLimb(x,y,length,material){
+const pivot=new THREE.Group();
+pivot.position.set(x,y,0);
+ 
+const limb=cylinder(pivot,0,-length/2,0,
+  0.095,0.085,length,material);
+ 
+pivot.add(limb);
+girlBody.add(pivot);
+limbs.push(pivot);
+return pivot;
+}
+ 
+makeLimb(-0.43,1.95,0.65,skin);
+makeLimb(0.43,1.95,0.65,skin);
+makeLimb(-0.19,0.78,0.65,skin);
+makeLimb(0.19,0.78,0.65,skin);
+ 
+// SHOES
+sphere(girlBody,-0.19,0.12,0.12,0.16,0.11,0.23,black);
+sphere(girlBody,0.19,0.12,0.12,0.16,0.11,0.23,black);
+ 
+// Hair ribbon
+sphere(girlBody,-0.35,2.75,0,0.16,0.12,0.12,pink);
+ 
+// ANIMAL MISSIONS
+let coins=100;
+let happiness=0;
+let cowDone=false;
+let sheepDone=false;
+let eggDone=false;
+ 
+const eggs=[];
+ 
+function addEgg(){
+const egg=new THREE.Group();
+egg.position.set(7,0,1);
+sphere(egg,0,0.18,0,0.17,0.23,0.17,white);
+scene.add(egg);
+eggs.push(egg);
+}
+addEgg();
+ 
+function updateHUD(){
+document.getElementById("coins").innerText=coins;
+document.getElementById("happy").innerText=happiness;
+document.getElementById("cowDone").innerText=cowDone?1:0;
+document.getElementById("sheepDone").innerText=sheepDone?1:0;
+document.getElementById("eggs").innerText=eggDone?1:0;
+}
+ 
+function say(t){
+document.getElementById("message").innerText=t;
+}
+ 
+// MOVEMENT
+const keys={};
+const speed=0.12;
+ 
+window.addEventListener("keydown",e=>{
+keys[e.key.toLowerCase()]=true;
+ 
+if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)){
+  e.preventDefault();
+}
+ 
+if(e.key===" " || e.key==="Enter") interact();
+});
+ 
+window.addEventListener("keyup",e=>{
+keys[e.key.toLowerCase()]=false;
+});
+ 
+function distance(a,b){
+return Math.hypot(a.position.x-b.position.x,
+                   a.position.z-b.position.z);
+}
+ 
+function moveGirl(){
+let dx=0,dz=0;
+ 
+if(keys["arrowup"]||keys["w"]) dz-=1;
+if(keys["arrowdown"]||keys["s"]) dz+=1;
+if(keys["arrowleft"]||keys["a"]) dx-=1;
+if(keys["arrowright"]||keys["d"]) dx+=1;
+ 
+const moving=dx!==0||dz!==0;
+ 
+if(moving){
+  const len=Math.hypot(dx,dz);
+  dx/=len; dz/=len;
+ 
+  girl.position.x+=dx*speed;
+  girl.position.z+=dz*speed;
+ 
+  girl.position.x=THREE.MathUtils.clamp(girl.position.x,-19,19);
+  girl.position.z=THREE.MathUtils.clamp(girl.position.z,-19,19);
+ 
+  girl.rotation.y=Math.atan2(dx,dz);
+ 
+  const t=performance.now()*0.012;
+  limbs[0].rotation.x=Math.sin(t)*0.55;
+  limbs[1].rotation.x=-Math.sin(t)*0.55;
+  limbs[2].rotation.x=-Math.sin(t)*0.7;
+  limbs[3].rotation.x=Math.sin(t)*0.7;
+}else{
+  limbs.forEach(l=>l.rotation.x*=0.8);
+}
+}
+ 
+// NEAREST ANIMAL
+let nearby="";
+ 
+function checkNearby(){
+const options=[
+  {name:"cow",object:cow,done:cowDone},
+  {name:"sheep",object:sheep,done:sheepDone},
+  {name:"chicken",object:chicken,done:eggDone}
+];
+ 
+nearby="";
+let best=3.2;
+ 
+for(const item of o
+  <!DOCTYPE html> <html lang="en"> <head> <... by Arti Kadu
+Arti Kadu
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Village 3D - Level 4</title>
+ 
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;background:#c8edff;
+font-family:Arial,sans-serif;text-align:center;
+}
+header{
+background:#398e4c;color:white;padding:10px;
+}
+header h2{margin:4px}
+#game{
+width:100%;height:68vh;min-height:420px;
+position:relative;overflow:hidden;
+}
+canvas{display:block}
+.hud{
+position:absolute;top:10px;left:0;right:0;
+display:flex;justify-content:center;gap:7px;
+flex-wrap:wrap;pointer-events:none;
+}
+.stat{
+background:#ffffffeb;padding:9px 12px;
+border-radius:20px;font-weight:bold;
+box-shadow:0 2px 5px #777;
+font-size:13px;
+}
+#message{
+padding:10px;color:#246b36;font-weight:bold;
+min-height:34px;
+}
+button{
+border:0;border-radius:13px;padding:12px 16px;
+margin:4px;background:#ffbd4c;
+font-size:15px;font-weight:bold;
+box-shadow:0 4px #d28b27;
+cursor:pointer;
+}
+button:active{transform:translateY(3px);box-shadow:none}
+#action{
+background:#36a957;color:white;
+box-shadow:0 4px #237c3d;
+font-size:17px;
+}
+.controls{
+display:flex;justify-content:center;
+align-items:center;gap:25px;flex-wrap:wrap;
+padding:5px 10px 15px;
+}
+.dpad{
+display:grid;grid-template-columns:48px 48px 48px;
+gap:3px;
+}
+.dpad button{padding:12px 5px;margin:0}
+.small{font-size:12px;color:#555}
+</style>
+</head>
+ 
+<body>
+ 
+<header>
+<h2>🌻 Happy Village 3D</h2>
+<div>Level 4 - Animal Farm 🐄</div>
+</header>
+ 
+<div id="game">
+ 
+<div class="hud">
+  <div class="stat">🪙 <span id="coins">100</span></div>
+  <div class="stat">❤️ <span id="happy">0</span></div>
+  <div class="stat">🐄 <span id="cowDone">0</span>/1</div>
+  <div class="stat">🥚 <span id="eggs">0</span>/1</div>
+  <div class="stat">🐑 <span id="sheepDone">0</span>/1</div>
+</div>
+ 
+</div>
+ 
+<div id="message">
+Welcome to your 3D Animal Farm! Move near an animal.
+</div>
+ 
+<div class="controls">
+ 
+<div class="dpad">
+  <div></div>
+  <button data-move="up">⬆️</button>
+  <div></div>
+  <button data-move="left">⬅️</button>
+  <button data-move="down">⬇️</button>
+  <button data-move="right">➡️</button>
+</div>
+ 
+<div>
+  <button id="action">🤝 INTERACT</button>
+  <p class="small">WASD / Arrow keys / Touch controls</p>
+</div>
+ 
+</div>
+ 
+<script type="importmap">
+{
+"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+}
+}
+</script>
+ 
+<script type="module">
+import * as THREE from "three";
+ 
+const game = document.getElementById("game");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9cddff);
+scene.fog = new THREE.Fog(0x9cddff,25,65);
+ 
+const camera = new THREE.PerspectiveCamera(
+55,game.clientWidth/game.clientHeight,0.1,100
+);
+camera.position.set(0,8,12);
+ 
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(game.clientWidth,game.clientHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+game.appendChild(renderer.domElement);
+ 
+// LIGHTS
+scene.add(new THREE.HemisphereLight(0xffffff,0x65934a,2));
+ 
+const sunlight = new THREE.DirectionalLight(0xffffff,3);
+sunlight.position.set(-8,15,8);
+sunlight.castShadow=true;
+sunlight.shadow.mapSize.set(1024,1024);
+scene.add(sunlight);
+ 
+// MATERIALS
+function mat(color,roughness=0.9){
+return new THREE.MeshStandardMaterial({color,roughness});
+}
+ 
+const grass=mat(0x6ebc55);
+const darkGrass=mat(0x499344);
+const brown=mat(0x86502c);
+const wood=mat(0xa66a3e);
+const white=mat(0xf3eee0);
+const black=mat(0x292323);
+const pink=mat(0xef6c9b);
+const skin=mat(0xf1bd91);
+const yellow=mat(0xffd34f);
+ 
+// OBJECT HELPER
+function box(parent,x,y,z,w,h,d,material){
+const m=new THREE.Mesh(
+  new THREE.BoxGeometry(w,h,d),material
+);
+m.position.set(x,y,z);
+m.castShadow=true;
+m.receiveShadow=true;
+parent.add(m);
+return m;
+}
+ 
+function sphere(parent,x,y,z,sx,sy,sz,material){
+const m=new THREE.Mesh(
+  new THREE.SphereGeometry(1,16,12),material
+);
+m.position.set(x,y,z);
+m.scale.set(sx,sy,sz);
+m.castShadow=true;
+parent.add(m);
+return m;
+}
+ 
+function cylinder(parent,x,y,z,r1,r2,h,material){
+const m=new THREE.Mesh(
+  new THREE.CylinderGeometry(r1,r2,h,12),material
+);
+m.position.set(x,y,z);
+m.castShadow=true;
+parent.add(m);
+return m;
+}
+ 
+// GROUND
+box(scene,0,-0.3,0,45,0.5,45,grass);
+ 
+// FARM PATCH
+box(scene,-7,-0.02,0,9,0.05,8,darkGrass);
+ 
+// BARN
+const barn=new THREE.Group();
+barn.position.set(-9,0,-7);
+scene.add(barn);
+ 
+box(barn,0,1.5,0,5,3,4,mat(0xc84e42));
+const roof=new THREE.Mesh(
+new THREE.ConeGeometry(3.8,2,4),
+mat(0x743d35)
+);
+roof.position.set(0,3.9,0);
+roof.rotation.y=Math.PI/4;
+roof.scale.set(1,1,0.8);
+roof.castShadow=true;
+barn.add(roof);
+box(barn,0,1,2.05,1.7,2,0.12,wood);
+ 
+// HOUSE
+const house=new THREE.Group();
+house.position.set(9,0,-9);
+scene.add(house);
+box(house,0,1.4,0,4,2.8,3.5,mat(0xffd58c));
+ 
+const houseRoof=new THREE.Mesh(
+new THREE.ConeGeometry(3.2,1.8,4),
+mat(0xb64f39)
+);
+houseRoof.position.y=3.6;
+houseRoof.rotation.y=Math.PI/4;
+house.add(houseRoof);
+ 
+box(house,0,0.9,1.8,0.9,1.8,0.15,wood);
+ 
+// TREES
+function makeTree(x,z){
+const g=new THREE.Group();
+g.position.set(x,0,z);
+scene.add(g);
+cylinder(g,0,0.8,0,0.18,0.25,1.6,brown);
+sphere(g,0,2,0,1,1.1,1,darkGrass);
+sphere(g,-0.5,2.3,0.2,0.7,0.7,0.7,grass);
+sphere(g,0.5,2.4,-0.2,0.7,0.7,0.7,grass);
+}
+for(let i=0;i<14;i++){
+makeTree(
+  Math.sin(i*2.4)*17,
+  Math.cos(i*2.4)*17
+);
+}
+ 
+// FLOWERS
+for(let i=0;i<35;i++){
+const x=Math.random()*24-12;
+const z=Math.random()*20-10;
+const f=new THREE.Group();
+f.position.set(x,0,z);
+scene.add(f);
+cylinder(f,0,0.18,0,0.035,0.035,0.35,darkGrass);
+sphere(f,0,0.4,0,0.12,0.12,0.12,
+  i%2?pink:yellow);
+}
+ 
+// FENCES
+for(let i=0;i<8;i++){
+box(scene,-7+i*1.4,0.4,4,0.12,0.8,0.12,wood);
+}
+box(scene,-2.1,0.7,4,10,0.12,0.12,wood);
+ 
+// ANIMAL CREATOR
+function makeCow(x,z){
+const g=new THREE.Group();
+g.position.set(x,0,z);
+scene.add(g);
+ 
+sphere(g,0,1.05,0,1,0.65,0.55,white);
+sphere(g,0.75,1.25,0,0.42,0.4,0.38,white);
+sphere(g,0.98,1.13,0.32,0.28,0.18,0.12,skin);
+ 
+// spots
+sphere(g,-0.3,1.5,0.35,0.3,0.25,0.08,black);
+sphere(g,0.25,1.3,-0.5,0.25,0.22,0.08,black);
+ 
+// ears
+sphere(g,0.55,1.55,0.3,0.2,0.09,0.16,skin);
+sphere(g,0.95,1.55,-0.2,0.2,0.09,0.16,skin);
+ 
+// horns
+cylinder(g,0.62,1.72,0,0.04,0.11,0.35,yellow);
+cylinder(g,0.95,1.72,0,0.04,0.11,0.35,yellow);
+ 
+// eyes
+sphere(g,0.98,1.4,0.29,0.045,0.06,0.035,black);
+ 
+for(let a of [-0.65,0.65]){
+  for(let b of [-0.32,0.32]){
+   cylinder(g,a,0.35,b,0.09,0.1,0.65,white);
+  }
+}
+return g;
+}
+ 
+function makeSheep(x,z){
+const g=new THREE.Group();
+g.position.set(x,0,z);
+scene.add(g);
+ 
+sphere(g,0,1,0,0.9,0.75,0.65,white);
+sphere(g,0.65,1.3,0,0.42,0.4,0.4,white);
+sphere(g,0.93,1.18,0.24,0.22,0.18,0.15,skin);
+sphere(g,0.88,1.38,0.31,0.05,0.07,0.04,black);
+ 
+for(let a of [-0.55,0.55]){
+  for(let b of [-0.35,0.35]){
+   cylinder(g,a,0.35,b,0.07,0.08,0.6,white);
+  }
+}
+for(let i=0;i<5;i++){
+  sphere(g,Math.sin(i)*0.4,1.55,Math.cos(i)*0.3,
+   0.3,0.3,0.3,white);
+}
+return g;
+}
+ 
+function makeChicken(x,z){
+const g=new THREE.Group();
+g.position.set(x,0,z);
+scene.add(g);
+ 
+sphere(g,0,0.55,0,0.45,0.48,0.4,white);
+sphere(g,0.2,0.92,0,0.3,0.3,0.3,white);
+sphere(g,0.45,0.85,0,0.15,0.1,0.1,yellow);
+sphere(g,0.15,1.19,0,0.1,0.15,0.1,pink);
+sphere(g,0.29,0.98,0.25,0.045,0.05,0.04,black);
+ 
+for(let x of [-0.15,0.2]){
+  cylinder(g,x,0.15,0,0.04,0.05,0.3,yellow);
+}
+return g;
+}
+ 
+const cow=makeCow(-7,0);
+const sheep=makeSheep(3,-2);
+const chicken=makeChicken(7,1);
+ 
+// GIRL CHARACTER - FULL 3D BODY
+const girl=new THREE.Group();
+scene.add(girl);
+girl.position.set(0,0,7);
+ 
+const girlBody=new THREE.Group();
+girl.add(girlBody);
+ 
+// BODY
+cylinder(girlBody,0,1.65,0,0.32,0.38,0.85,pink);
+sphere(girlBody,0,2.45,0,0.43,0.48,0.4,skin);
+ 
+// HAIR
+sphere(girlBody,0,2.65,-0.08,0.45,0.38,0.43,mat(0x392018));
+sphere(girlBody,-0.34,2.4,-0.08,0.17,0.4,0.19,mat(0x392018));
+sphere(girlBody,0.34,2.4,-0.08,0.17,0.4,0.19,mat(0x392018));
+ 
+// EYES
+sphere(girlBody,-0.16,2.48,0.36,0.045,0.07,0.035,black);
+sphere(girlBody,0.16,2.48,0.36,0.045,0.07,0.035,black);
+ 
+// SMILE
+sphere(girlBody,0,2.28,0.38,0.09,0.025,0.025,pink);
+ 
+// SKIRT
+const skirt=new THREE.Mesh(
+new THREE.CylinderGeometry(0.32,0.58,0.65,20),
+yellow
+);
+skirt.position.y=1.05;
+skirt.castShadow=true;
+girlBody.add(skirt);
+ 
+// ARMS AND LEGS
+const limbs=[];
+ 
+function makeLimb(x,y,length,material){
+const pivot=new THREE.Group();
+pivot.position.set(x,y,0);
+ 
+const limb=cylinder(pivot,0,-length/2,0,
+  0.095,0.085,length,material);
+ 
+pivot.add(limb);
+girlBody.add(pivot);
+limbs.push(pivot);
+return pivot;
+}
+ 
+makeLimb(-0.43,1.95,0.65,skin);
+makeLimb(0.43,1.95,0.65,skin);
+makeLimb(-0.19,0.78,0.65,skin);
+makeLimb(0.19,0.78,0.65,skin);
+ 
+// SHOES
+sphere(girlBody,-0.19,0.12,0.12,0.16,0.11,0.23,black);
+sphere(girlBody,0.19,0.12,0.12,0.16,0.11,0.23,black);
+ 
+// Hair ribbon
+sphere(girlBody,-0.35,2.75,0,0.16,0.12,0.12,pink);
+ 
+// ANIMAL MISSIONS
+let coins=100;
+let happiness=0;
+let cowDone=false;
+let sheepDone=false;
+let eggDone=false;
+ 
+const eggs=[];
+ 
+function addEgg(){
+const egg=new THREE.Group();
+egg.position.set(7,0,1);
+sphere(egg,0,0.18,0,0.17,0.23,0.17,white);
+scene.add(egg);
+eggs.push(egg);
+}
+addEgg();
+ 
+function updateHUD(){
+document.getElementById("coins").innerText=coins;
+document.getElementById("happy").innerText=happiness;
+document.getElementById("cowDone").innerText=cowDone?1:0;
+document.getElementById("sheepDone").innerText=sheepDone?1:0;
+document.getElementById("eggs").innerText=eggDone?1:0;
+}
+ 
+function say(t){
+document.getElementById("message").innerText=t;
+}
+ 
+// MOVEMENT
+const keys={};
+const speed=0.12;
+ 
+window.addEventListener("keydown",e=>{
+keys[e.key.toLowerCase()]=true;
+ 
+if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)){
+  e.preventDefault();
+}
+ 
+if(e.key===" " || e.key==="Enter") interact();
+});
+ 
+window.addEventListener("keyup",e=>{
+keys[e.key.toLowerCase()]=false;
+});
+ 
+function distance(a,b){
+return Math.hypot(a.position.x-b.position.x,
+                   a.position.z-b.position.z);
+}
+ 
+function moveGirl(){
+let dx=0,dz=0;
+ 
+if(keys["arrowup"]||keys["w"]) dz-=1;
+if(keys["arrowdown"]||keys["s"]) dz+=1;
+if(keys["arrowleft"]||keys["a"]) dx-=1;
+if(keys["arrowright"]||keys["d"]) dx+=1;
+ 
+const moving=dx!==0||dz!==0;
+ 
+if(moving){
+  const len=Math.hypot(dx,dz);
+  dx/=len; dz/=len;
+ 
+  girl.position.x+=dx*speed;
+  girl.position.z+=dz*speed;
+ 
+  girl.position.x=THREE.MathUtils.clamp(girl.position.x,-19,19);
+  girl.position.z=THREE.MathUtils.clamp(girl.position.z,-19,19);
+ 
+  girl.rotation.y=Math.atan2(dx,dz);
+ 
+  const t=performance.now()*0.012;
+  limbs[0].rotation.x=Math.sin(t)*0.55;
+  limbs[1].rotation.x=-Math.sin(t)*0.55;
+  limbs[2].rotation.x=-Math.sin(t)*0.7;
+  limbs[3].rotation.x=Math.sin(t)*0.7;
+}else{
+  limbs.forEach(l=>l.rotation.x*=0.8);
+}
+}
+ 
+// NEAREST ANIMAL
+let nearby="";
+ 
+function checkNearby(){
+const options=[
+  {name:"cow",object:cow,done:cowDone},
+  {name:"sheep",object:sheep,done:sheepDone},
+  {name:"chicken",object:chicken,done:eggDone}
+];
+ 
+nearby="";
+let best=3.2;
+
+
+for(const item of options){
+  const d=distance(girl,item.object);
+  if(d<best&&!item.done){
+   best=d;
+   nearby=item.name;
+  }
+}
+ 
+if(nearby==="cow") say("🐄 Press INTERACT to feed the cow!");
+else if(nearby==="sheep") say("🐑 Press INTERACT to feed the sheep!");
+else if(nearby==="chicken") say("🐔 Press INTERACT to collect the egg!");
+else if(cowDone&&sheepDone&&eggDone)
+  say("🎉 LEVEL 4 COMPLETE! Your farm is happy!");
+else
+  say("Explore your farm and meet the animals!");
+}
+ 
+// INTERACTIONS
+function interact(){
+ 
+checkNearby();
+ 
+if(nearby==="cow"&&!cowDone){
+  if(coins<10){say("Need 10 coins for cow food!");return;}
+  coins-=10;
+  happiness+=20;
+  cowDone=true;
+  say("🐄 The cow enjoyed its fresh food! +20 happiness");
+}
+else if(nearby==="chicken"&&!eggDone){
+  coins+=25;
+  happiness+=10;
+  eggDone=true;
+  eggs.forEach(e=>scene.remove(e));
+  say("🥚 You collected a fresh egg! +25 coins");
+}
+ 
+else{
+  say("Move closer to an animal first!");
+}
+ 
+updateHUD();
+checkNearby();
+}
+ 
+// TOUCH CONTROLS
+document.querySelectorAll("[data-move]").forEach(btn=>{
+ 
+const direction=btn.dataset.move;
+ 
+const map={
+  up:"arrowup",
+  down:"arrowdown",
+  left:"arrowleft",
+  right:"arrowright"
+};
+ 
+const key=map[direction];
+ 
+btn.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  keys[key]=true;
+});
+["pointerup","pointerleave","pointercancel"].forEach(event=>{
+  btn.addEventListener(event,()=>{
+   keys[key]=false;
+  });
+});
+ 
+});
+ 
+document.getElementById("action").onclick=interact;
+ 
+// CAMERA FOLLOW
+function updateCamera(){
+const target=new THREE.Vector3(
+  girl.position.x,
+  7,
+  girl.position.z+10
+);
+ 
+camera.position.lerp(target,0.08);
+ 
+const look=new THREE.Vector3(
+  girl.position.x,
+  1,
+  girl.position.z-1
+);
+ 
+camera.lookAt(look);
+}
+ 
+// ANIMATION LOOP
+const clock=new THREE.Clock();
+ 
+function animate(){
+requestAnimationFrame(animate);
+ 
+moveGirl();
+checkNearby();
+updateCamera();
+ 
+renderer.render(scene,camera);
+}
+ 
+animate();
+ 
+window.addEventListener("resize",()=>{
+camera.aspect=game.clientWidth/game.clientHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(game.clientWidth,game.clientHeight);
+});
+ 
+updateHUD();
+ 
+</script>
+</body>
+</html>
+has context menu
+
