@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Village - Level 3</title>
+ 
+<style>
+* { box-sizing: border-box; }
+ 
+body {
+  margin: 0;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background: #d6f5ff;
+}
+ 
+header {
+  background: #54bd60;
+  color: white;
+  padding: 12px;
+}
+ 
+header h1 { margin: 5px; }
+ 
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px;
+}
+ 
+.stats span {
+  background: white;
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+ 
+#village {
+  position: relative;
+  width: 96%;
+  max-width: 750px;
+  height: 510px;
+  margin: auto;
+  overflow: hidden;
+  border: 5px solid white;
+  border-radius: 20px;
+  background: linear-gradient(
+    #8cddff 0%,
+    #8cddff 28%,
+    #9cdd78 28%,
+    #62bc55 100%
+  );
+}
+ 
+.sun {
+  position: absolute;
+  top: 15px;
+  right: 30px;
+  font-size: 50px;
+}
+ 
+.cloud {
+  position: absolute;
+  top: 25px;
+  left: 30px;
+  font-size: 45px;
+}
+ 
+.house {
+  position: absolute;
+  top: 105px;
+  font-size: 75px;
+}
+ 
+.house1 { left: 8%; }
+.house2 { right: 8%; }
+ 
+.path {
+  position: absolute;
+  top: 68%;
+  width: 100%;
+  height: 100px;
+  background: #dfc18a;
+  border-top: 5px solid #c6a46b;
+  border-bottom: 5px solid #c6a46b;
+}
+ 
+.soil {
+  position: absolute;
+  width: 55px;
+  height: 55px;
+  background: #89532e;
+  border: 4px solid #633a20;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  z-index: 2;
+}
+ 
+.s1 { left: 15%; top: 78%; }
+.s2 { left: 43%; top: 76%; }
+.s3 { right: 13%; top: 79%; }
+ 
+.tree {
+  position: absolute;
+  font-size: 45px;
+  z-index: 2;
+}
+ 
+/* Full body cartoon girl */
+ 
+.girl {
+  position: absolute;
+  width: 70px;
+  height: 145px;
+  left: 40%;
+  top: 56%;
+  z-index: 5;
+  transform-origin: bottom center;
+}
+ 
+.girl.walking {
+  animation: bounce .25s infinite alternate;
+}
+ 
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-5px); }
+}
+ 
+.head {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  left: 11px;
+  top: 0;
+  background: #f3bd91;
+  border: 2px solid #c98860;
+  border-radius: 48% 48% 45% 45%;
+  z-index: 4;
+}
+ 
+.hair {
+  position: absolute;
+  top: -5px;
+  left: 7px;
+  width: 55px;
+  height: 29px;
+  background: #352018;
+  border-radius: 50% 50% 25% 25%;
+  z-index: 5;
+}
+ 
+.hair:after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 22px;
+  width: 15px;
+  height: 35px;
+  background: #352018;
+  border-radius: 50%;
+}
+ 
+.eye {
+  position: absolute;
+  top: 20px;
+  left: 12px;
+  font-size: 10px;
+  color: #24160f;
+  z-index: 6;
+}
+ 
+.eye.right {
+  left: 30px;
+}
+ 
+.smile {
+  position: absolute;
+  top: 29px;
+  left: 20px;
+  font-size: 11px;
+  z-index: 6;
+}
+ 
+.body {
+  position: absolute;
+  top: 45px;
+  left: 13px;
+  width: 44px;
+  height: 55px;
+  background: #f45e8a;
+  border: 2px solid #bd3d69;
+  border-radius: 15px 15px 8px 8px;
+  z-index: 3;
+}
+ 
+.dress {
+  position: absolute;
+  top: 80px;
+  left: 5px;
+  width: 60px;
+  height: 42px;
+  background: #ffcf4c;
+  border: 2px solid #d89e20;
+  clip-path: polygon(25% 0,75% 0,100% 100%,0 100%);
+  z-index: 3;
+}
+ 
+.arm {
+  position: absolute;
+  width: 13px;
+  height: 48px;
+  top: 49px;
+  background: #f3bd91;
+  border-radius: 15px;
+  z-index: 2;
+  transform-origin: top center;
+}
+ 
+.arm.left {
+  left: 4px;
+  transform: rotate(20deg);
+}
+ 
+.arm.right {
+  right: 1px;
+  transform: rotate(-20deg);
+}
+ 
+.leg {
+  position: absolute;
+  width: 13px;
+  height: 27px;
+  top: 117px;
+  background: #f3bd91;
+  border-radius: 10px;
+  z-index: 2;
+}
+ 
+.leg.left { left: 19px; }
+.leg.right { left: 40px; }
+ 
+.shoe {
+  position: absolute;
+  top: 139px;
+  width: 20px;
+  height: 9px;
+  background: #743b27;
+  border-radius: 10px;
+  z-index: 3;
+}
+ 
+.shoe.left { left: 12px; }
+.shoe.right { left: 36px; }
+ 
+.girl.walking .leg.left {
+  animation: legs .25s infinite alternate;
+}
+ 
+.girl.walking .leg.right {
+  animation: legs .25s infinite alternate-reverse;
+}
+ 
+@keyframes legs {
+  to { transform: rotate(20deg); }
+}
+ 
+.bucket {
+  position: absolute;
+  top: 86px;
+  right: -16px;
+  font-size: 24px;
+  z-index: 7;
+  display: none;
+}
+ 
+.girl.watering .bucket {
+  display: block;
+}
+ 
+.water {
+  position: absolute;
+  font-size: 24px;
+  top: 40px;
+  left: 47px;
+  display: none;
+  z-index: 7;
+}
+ 
+.girl.watering .water {
+  display: block;
+}
+ 
+.river {
+  position: absolute;
+  bottom: 0;
+  height: 55px;
+  width: 100%;
+  background: #38bde9;
+  border-top: 5px solid #a4efff;
+}
+ 
+.message {
+  min-height: 35px;
+  color: #237b36;
+  font-weight: bold;
+  padding: 10px;
+}
+ 
+.controls {
+  padding: 10px;
+}
+ 
+button {
+  background: #ffbd4b;
+  border: none;
+  border-radius: 13px;
+  padding: 13px;
+  margin: 4px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px #d58e26;
+}
+ 
+button:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+ 
+.water-btn {
+  background: #4fbd65;
+  color: white;
+  box-shadow: 0 4px #318a43;
+}
+ 
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 55px);
+  justify-content: center;
+  gap: 5px;
+  margin: 12px;
+}
+ 
+.dpad button {
+  margin: 0;
+  padding: 12px;
+}
+ 
+</style>
+</head>
+ 
+<body>
+ 
+<header>
+<h1>🌻 Happy Village</h1>
+<p>Level 3 - Water Your Plants 💧</p>
+</header>
+ 
+<div class="stats">
+<span>🪙 Coins: <b id="coins">100</b></span>
+<span>⭐ Happiness: <b id="happy">0</b></span>
+<span>🌱 Watered: <b id="count">0</b>/3</span>
+</div>
+ 
+<div id="village">
+ 
+<div class="sun">☀️</div>
+<div class="cloud">☁️</div>
+ 
+<div class="house house1">🏡</div>
+<div class="house house2">🏠</div>
+ 
+<div class="path"></div>
+ 
+<div class="soil s1" data-watered="false">🌱</div>
+<div class="soil s2" data-watered="false">🌱</div>
+<div class="soil s3" data-watered="false">🌱</div>
+ 
+<div class="girl" id="girl">
+ 
+<div class="hair"></div>
+<div class="head">
+<div class="eye">●</div>
+<div class="eye right">●</div>
+<div class="smile">⌣</div>
+</div>
+ 
+<div class="body"></div>
+<div class="dress"></div>
+ 
+<div class="arm left"></div>
+<div class="arm right"></div>
+ 
+<div class="leg left"></div>
+<div class="leg right"></div>
+ 
+<div class="shoe left"></div>
+<div class="shoe right"></div>
+ 
+<div class="bucket">🪣</div>
+<div class="water">💧</div>
+ 
+</div>
+ 
+<div class="river"></div>
+</div>
+ 
+<div class="message" id="message">
+Hello! Walk to your plants and give them water! 💧
+</div>
+ 
+<div class="controls">
+ 
+<div class="dpad">
+<div></div>
+<button onclick="move(0,-20)">⬆️</button>
+<div></div>
+<button onclick="move(-20,0)">⬅️</button>
+<button onclick="move(0,20)">⬇️</button>
+<button onclick="move(20,0)">➡️</button>
+</div>
+ 
+<button class="water-btn" onclick="waterPlant()">
+🪣 WATER PLANT
+</button>
+ 
+<button onclick="collect()">
+🪙 Collect Coins
+</button>
+ 
+</div>
+ 
+<script>
+ 
+let coins = 100;
+let happiness = 0;
+let watered = 0;
+ 
+const girl = document.getElementById("girl");
+const village = document.getElementById("village");
+ 
+function update() {
+document.getElementById("coins").innerText = coins;
+document.getElementById("happy").innerText = happiness;
+document.getElementById("count").innerText = watered;
+}
+ 
+function message(text) {
+document.getElementById("message").innerText = text;
+}
+ 
+function move(dx,dy) {
+ 
+let x = girl.offsetLeft + dx;
+let y = girl.offsetTop + dy;
+ 
+x = Math.max(0, Math.min(village.clientWidth-70,x));
+y = Math.max(135, Math.min(village.clientHeight-155,y));
+ 
+girl.style.left = x+"px";
+girl.style.top = y+"px";
+ 
+girl.classList.add("walking");
+clearTimeout(window.walkTimer);
+ 
+window.walkTimer = setTimeout(()=>{
+   girl.classList.remove("walking");
+},250);
+ 
+checkNear();
+ 
+}
+ 
+document.addEventListener("keydown", e => {
+ 
+if(e.key === "ArrowUp") move(0,-20);
+if(e.key === "ArrowDown") move(0,20);
+if(e.key === "ArrowLeft") move(-20,0);
+if(e.key === "ArrowRight") move(20,0);
+if(e.key === " " || e.key === "Enter") waterPlant();
+ 
+});
+ 
+function nearestPlant() {
+ 
+const g = girl.getBoundingClientRect();
+const gx = g.left+g.width/2;
+const gy = g.top+g.height/2;
+ 
+let nearest = null;
+let distance = Infinity;
+ 
+document.querySelectorAll(".soil").forEach(spot=>{
+ 
+   if(spot.dataset.watered === "true") return;
+ 
+   const r = spot.getBoundingClientRect();
+   const sx = r.left+r.width/2;
+   const sy = r.top+r.height/2;
+ 
+   const d = Math.hypot(gx-sx,gy-sy);
+ 
+   if(d<distance) {
+     distance=d;
+     nearest=spot;
+   }
+ 
+});
+ 
+return distance<105 ? nearest : null;
+ 
+}
+ 
+function checkNear() {
+ 
+if(nearestPlant()) {
+   message("Great! You are near a plant. Give it water! 💧");
+} else {
+   message("Walk closer to a small plant! 👧");
+}
+ 
+}
+ 
+function waterPlant() {
+ 
+const spot=nearestPlant();
+ 
+if(!spot) {
+   message("Please walk closer to a plant first! 🚶‍♀️");
+   return;
+}
+ 
+if(coins<5) {
+   message("You need more coins!");
+   return;
+}
+ 
+coins-=5;
+happiness+=10;
+watered++;
+ 
+girl.classList.add("watering");
+ 
+spot.dataset.watered="true";
+spot.innerText="🌳";
+spot.style.background="#a4e78c";
+spot.style.borderColor="#438d3b";
+ 
+message("Beautiful! Your plant is growing! 🌳💧");
+ 
+setTimeout(()=>{
+   girl.classList.remove("watering");
+},1200);
+ 
+if(watered===3) {
+   happiness+=30;
+   message("🎉 LEVEL 3 COMPLETE! Your garden is beautiful!");
+}
+ 
+update();
+ 
+}
+ 
+function collect() {
+coins+=25;
+message("You collected 25 coins! 🪙");
+update();
+}
+ 
+update();
+ 
+</script>
+ 
+</body>
+</html>
