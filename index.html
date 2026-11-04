@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Village</title>
+ 
+<style>
+* {
+  box-sizing: border-box;
+}
+ 
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #b8edff;
+  text-align: center;
+}
+ 
+header {
+  background: #65c95d;
+  color: white;
+  padding: 15px;
+}
+ 
+header h1 {
+  margin: 5px;
+}
+ 
+.stats {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  font-weight: bold;
+}
+ 
+.stat {
+  background: white;
+  border-radius: 20px;
+  padding: 10px 16px;
+}
+ 
+.village {
+  position: relative;
+  max-width: 750px;
+  height: 520px;
+  margin: 10px auto;
+  overflow: hidden;
+  border: 6px solid white;
+  border-radius: 20px;
+  background: linear-gradient(#91dcff 0 35%, #8edb72 35% 100%);
+}
+ 
+.sun {
+  position: absolute;
+  top: 25px;
+  right: 40px;
+  font-size: 55px;
+}
+ 
+.cloud {
+  position: absolute;
+  top: 35px;
+  left: 45px;
+  font-size: 45px;
+}
+ 
+.hill {
+  position: absolute;
+  bottom: 230px;
+  left: -40px;
+  width: 350px;
+  height: 180px;
+  background: #69b957;
+  border-radius: 50%;
+}
+ 
+.hill2 {
+  position: absolute;
+  bottom: 220px;
+  right: -80px;
+  width: 350px;
+  height: 180px;
+  background: #57aa54;
+  border-radius: 50%;
+}
+ 
+.river {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 85px;
+  background: #42c7ed;
+  border-top: 8px solid #8ceaff;
+}
+ 
+.house {
+  position: absolute;
+  font-size: 85px;
+  cursor: pointer;
+  filter: drop-shadow(3px 5px 2px #568c48);
+  transition: transform .2s;
+}
+ 
+.house:hover {
+  transform: scale(1.15);
+}
+ 
+.house1 { top: 145px; left: 15%; }
+.house2 { top: 165px; right: 15%; }
+ 
+.tree {
+  position: absolute;
+  font-size: 48px;
+  cursor: pointer;
+}
+ 
+.tree1 { top: 280px; left: 12%; }
+.tree2 { top: 340px; right: 12%; }
+.tree3 { top: 285px; right: 38%; }
+ 
+.garden {
+  position: absolute;
+  top: 330px;
+  left: 35%;
+  background: #b57b48;
+  border: 5px solid #8a542e;
+  border-radius: 15px;
+  width: 130px;
+  height: 90px;
+  display: grid;
+  place-items: center;
+  font-size: 35px;
+  cursor: pointer;
+}
+ 
+.person {
+  position: absolute;
+  top: 260px;
+  left: 48%;
+  font-size: 48px;
+  cursor: pointer;
+}
+ 
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+}
+ 
+button {
+  border: none;
+  padding: 13px 18px;
+  border-radius: 14px;
+  background: #ffbd4a;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #d48c25;
+}
+ 
+button:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+ 
+#message {
+  font-weight: bold;
+  color: #287b36;
+  min-height: 30px;
+}
+</style>
+</head>
+ 
+<body>
+ 
+<header>
+  <h1>🌻 Happy Village 🏡</h1>
+  <p>Welcome to your Dream Village!</p>
+</header>
+ 
+<div class="stats">
+  <div class="stat">🪙 Coins: <span id="coins">100</span></div>
+  <div class="stat">⭐ Happiness: <span id="happy">0</span></div>
+  <div class="stat">🌳 Trees: <span id="trees">3</span></div>
+</div>
+ 
+<div class="village">
+ 
+  <div class="sun">☀️</div>
+  <div class="cloud">☁️</div>
+ 
+  <div class="hill"></div>
+  <div class="hill2"></div>
+ 
+  <div class="house house1" onclick="visitHouse()">🏡</div>
+  <div class="house house2" onclick="visitHouse()">🏠</div>
+ 
+  <div class="tree tree1">🌳</div>
+  <div class="tree tree2">🌲</div>
+  <div class="tree tree3">🌴</div>
+ 
+  <div class="garden" onclick="plantFlower()">🌱</div>
+ 
+  <div class="person" onclick="talk()">👧</div>
+ 
+  <div class="river"></div>
+ 
+</div>
+ 
+<div id="message">Welcome! Let's make a beautiful village ❤️</div>
+ 
+<div class="controls">
+  <button onclick="plantFlower()">🌻 Plant Flower (10)</button>
+  <button onclick="buyTree()">🌳 Buy Tree (20)</button>
+  <button onclick="collectCoins()">🪙 Collect Coins</button>
+  <button onclick="feedAnimals()">🐄 Feed Animals (15)</button>
+</div>
+ 
+<script>
+let coins = 100;
+let happiness = 0;
+let trees = 3;
+ 
+function update() {
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("happy").innerText = happiness;
+  document.getElementById("trees").innerText = trees;
+}
+ 
+function message(text) {
+  document.getElementById("message").innerText = text;
+}
+ 
+function plantFlower() {
+  if (coins >= 10) {
+    coins -= 10;
+    happiness += 5;
+    document.querySelector(".garden").innerText += "🌻";
+    message("Wow! Your garden is beautiful! 🌻");
+  } else {
+    message("Not enough coins!");
+  }
+  update();
+}
+ 
+function buyTree() {
+  if (coins >= 20) {
+    coins -= 20;
+    trees++;
+    happiness += 3;
+ 
+    let tree = document.createElement("div");
+    tree.className = "tree";
+    tree.innerText = "🌳";
+    tree.style.top = Math.floor(Math.random() * 180 + 250) + "px";
+    tree.style.left = Math.floor(Math.random() * 80 + 5) + "%";
+ 
+    document.querySelector(".village").appendChild(tree);
+    message("A new tree has been planted! 🌳");
+  } else {
+    message("You need more coins!");
+  }
+  update();
+}
+ 
+function collectCoins() {
+  coins += 25;
+  message("You collected 25 coins! 🪙");
+  update();
+}
+ 
+function feedAnimals() {
+  if (coins >= 15) {
+    coins -= 15;
+    happiness += 10;
+    message("The village animals are happy! 🐄");
+  } else {
+    message("Not enough coins!");
+  }
+  update();
+}
+ 
+function visitHouse() {
+  happiness += 2;
+  message("Welcome home! ❤️");
+  update();
+}
+ 
+function talk() {
+  message("Hello! Let's make our village the happiest place! 🥰");
+  happiness += 2;
+  update();
+}
+ 
+update();
+</script>
+ 
+</body>
+</html>
