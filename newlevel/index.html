@@ -1,0 +1,415 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Village - Level 2</title>
+ 
+<style>
+* { box-sizing: border-box; }
+ 
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #c4efff;
+}
+ 
+header {
+  background: #58bd59;
+  color: white;
+  padding: 12px;
+}
+ 
+h1 { margin: 5px; }
+ 
+.stats {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+}
+ 
+.stat {
+  background: white;
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+ 
+.village {
+  width: 95%;
+  max-width: 750px;
+  height: 500px;
+  margin: auto;
+  position: relative;
+  overflow: hidden;
+  border: 5px solid white;
+  border-radius: 20px;
+  background: linear-gradient(
+    #91dcff 0%,
+    #91dcff 30%,
+    #8edb72 30%,
+    #68c35d 100%
+  );
+}
+ 
+.sun {
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  font-size: 48px;
+}
+ 
+.cloud {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  font-size: 45px;
+}
+ 
+.house {
+  position: absolute;
+  top: 120px;
+  font-size: 65px;
+  z-index: 2;
+}
+ 
+.house1 { left: 10%; }
+.house2 { right: 10%; }
+ 
+.tree {
+  position: absolute;
+  font-size: 43px;
+  z-index: 2;
+}
+ 
+.tree1 { top: 250px; left: 10%; }
+.tree2 { top: 300px; right: 10%; }
+ 
+.path {
+  position: absolute;
+  left: 0;
+  top: 65%;
+  width: 100%;
+  height: 100px;
+  background: #d8bd83;
+  border-top: 5px solid #c5a46d;
+  border-bottom: 5px solid #c5a46d;
+}
+ 
+.spot {
+  position: absolute;
+  z-index: 3;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #9a683b;
+  border: 3px solid #70451e;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+}
+ 
+.spot1 { left: 55%; top: 69%; }
+.spot2 { left: 75%; top: 80%; }
+.spot3 { left: 25%; top: 80%; }
+ 
+.girl {
+  position: absolute;
+  left: 45%;
+  top: 65%;
+  z-index: 5;
+  font-size: 48px;
+  transition: left .12s linear, top .12s linear;
+  user-select: none;
+  filter: drop-shadow(2px 3px 2px #555);
+}
+ 
+.river {
+  position: absolute;
+  bottom: 0;
+  height: 65px;
+  width: 100%;
+  background: #38bde9;
+  border-top: 6px solid #9cecff;
+  z-index: 1;
+}
+ 
+.message {
+  color: #287b36;
+  font-weight: bold;
+  min-height: 28px;
+  padding: 8px;
+}
+ 
+.game-controls {
+  max-width: 500px;
+  margin: 10px auto;
+  padding: 10px;
+}
+ 
+button {
+  border: none;
+  border-radius: 13px;
+  background: #ffbf50;
+  padding: 13px 17px;
+  margin: 4px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px #d68e25;
+}
+ 
+button:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+ 
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 55px);
+  justify-content: center;
+  gap: 5px;
+  margin: 15px;
+}
+ 
+.dpad button {
+  padding: 12px;
+  margin: 0;
+}
+ 
+.plant-btn {
+  background: #54bd58;
+  color: white;
+  font-size: 18px;
+  padding: 15px 25px;
+  box-shadow: 0 4px #328a36;
+}
+ 
+.help {
+  color: #555;
+  font-size: 13px;
+}
+</style>
+</head>
+ 
+<body>
+ 
+<header>
+  <h1>🌻 Happy Village 🏡</h1>
+  <p>Level 2 - Plant Your Dream Garden!</p>
+</header>
+ 
+<div class="stats">
+  <div class="stat">🪙 Coins: <span id="coins">100</span></div>
+  <div class="stat">⭐ Happiness: <span id="happy">0</span></div>
+  <div class="stat">🌳 Plants: <span id="plants">0</span>/3</div>
+</div>
+ 
+<div class="village" id="village">
+ 
+  <div class="sun">☀️</div>
+  <div class="cloud">☁️</div>
+ 
+  <div class="house house1">🏡</div>
+  <div class="house house2">🏠</div>
+ 
+  <div class="tree tree1">🌳</div>
+  <div class="tree tree2">🌲</div>
+ 
+  <div class="path"></div>
+ 
+  <div class="spot spot1" data-planted="false">🟤</div>
+  <div class="spot spot2" data-planted="false">🟤</div>
+  <div class="spot spot3" data-planted="false">🟤</div>
+ 
+  <div class="girl" id="girl">👧</div>
+ 
+  <div class="river"></div>
+ 
+</div>
+ 
+<div class="message" id="message">
+  Hello! Walk near the soil and plant a tree! 🌱
+</div>
+ 
+<div class="game-controls">
+ 
+  <div class="dpad">
+    <div></div>
+    <button onclick="move(0,-20)">⬆️</button>
+    <div></div>
+ 
+    <button onclick="move(-20,0)">⬅️</button>
+    <button onclick="move(0,20)">⬇️</button>
+    <button onclick="move(20,0)">➡️</button>
+  </div>
+ 
+  <p class="help">
+    Use arrow keys on keyboard or buttons on mobile.
+  </p>
+ 
+  <button class="plant-btn" onclick="plant()">
+    🌱 PLANT TREE
+  </button>
+ 
+  <button onclick="collectCoins()">
+    🪙 Collect Coins
+  </button>
+ 
+</div>
+ 
+<script>
+ 
+let coins = 100;
+let happiness = 0;
+let plants = 0;
+ 
+const girl = document.getElementById("girl");
+const village = document.getElementById("village");
+ 
+function message(text) {
+  document.getElementById("message").innerText = text;
+}
+ 
+function update() {
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("happy").innerText = happiness;
+  document.getElementById("plants").innerText = plants;
+}
+ 
+function move(dx, dy) {
+ 
+  let x = girl.offsetLeft + dx;
+  let y = girl.offsetTop + dy;
+ 
+  x = Math.max(0, Math.min(
+    village.clientWidth - girl.offsetWidth, x
+  ));
+ 
+  y = Math.max(100, Math.min(
+    village.clientHeight - girl.offsetHeight - 65, y
+  ));
+ 
+  girl.style.left = x + "px";
+  girl.style.top = y + "px";
+ 
+  checkNearby();
+ 
+}
+ 
+document.addEventListener("keydown", function(e) {
+ 
+  if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+    e.preventDefault();
+  }
+ 
+  if (e.key === "ArrowUp" || e.key === "w")
+    move(0,-20);
+ 
+  if (e.key === "ArrowDown" || e.key === "s")
+    move(0,20);
+ 
+  if (e.key === "ArrowLeft" || e.key === "a")
+    move(-20,0);
+ 
+  if (e.key === "ArrowRight" || e.key === "d")
+    move(20,0);
+ 
+  if (e.key === " " || e.key === "Enter")
+    plant();
+ 
+});
+ 
+function nearestSpot() {
+ 
+  let girlRect = girl.getBoundingClientRect();
+  let gx = girlRect.left + girlRect.width / 2;
+  let gy = girlRect.top + girlRect.height / 2;
+ 
+  let nearest = null;
+  let minDistance = Infinity;
+ 
+  document.querySelectorAll(".spot").forEach(spot => {
+ 
+    if (spot.dataset.planted === "true") return;
+ 
+    let r = spot.getBoundingClientRect();
+ 
+    let sx = r.left + r.width / 2;
+    let sy = r.top + r.height / 2;
+ 
+    let distance = Math.hypot(gx-sx, gy-sy);
+ 
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearest = spot;
+    }
+ 
+  });
+ 
+  return minDistance < 95 ? nearest : null;
+ 
+}
+ 
+function checkNearby() {
+ 
+  if (nearestSpot()) {
+    message("You are near the soil! Press PLANT TREE 🌱");
+  } else {
+    message("Walk near a brown soil spot to plant! 👧");
+  }
+ 
+}
+ 
+function plant() {
+ 
+  let spot = nearestSpot();
+ 
+  if (!spot) {
+    message("Walk closer to a brown soil spot first! 🚶‍♀️");
+    return;
+  }
+ 
+  if (coins < 10) {
+    message("Not enough coins! Collect more coins. 🪙");
+    return;
+  }
+ 
+  coins -= 10;
+  plants++;
+  happiness += 10;
+ 
+  spot.dataset.planted = "true";
+  spot.innerText = "🌳";
+  spot.style.background = "#74c75b";
+  spot.style.borderColor = "#438d3b";
+  spot.style.fontSize = "32px";
+ 
+  message("Amazing! You planted a beautiful tree! 🌳❤️");
+ 
+  update();
+ 
+  if (plants === 3) {
+    happiness += 20;
+    message("🎉 LEVEL 2 COMPLETE! Your village is greener!");
+    update();
+  }
+ 
+}
+ 
+function collectCoins() {
+  coins += 25;
+  message("You collected 25 coins! 🪙");
+  update();
+}
+ 
+update();
+ 
+</script>
+ 
+</body>
+</html>
